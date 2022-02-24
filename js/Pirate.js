@@ -16,14 +16,13 @@ class Pirate {
                 object.scale.multiplyScalar(scale)
                 scene.add(object)
                 this.object = object
-                console.log(this.object)
             }
         );
     }
 
     Update(target) {
-        const dir = GetDirection(this.object.position, target)
-        this.object.position.addScaledVector(dir, this.speed())
+        // const dir = GetDirection(this.object.position, target)
+        // this.object.position.addScaledVector(dir, this.speed())
     }
 }
 
