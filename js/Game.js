@@ -37,7 +37,7 @@ class Game {
             const dist = randFloat(10, 500)
             const angle = randFloat(0, 6.24)
 
-            pirate.LoadModel(playerPos.x + (Math.sin(angle) * dist), 0, playerPos.z +(Math.cos(angle) * dist), 4, scene)
+            pirate.LoadModel(playerPos.x + (Math.sin(angle) * dist), -1, playerPos.z +(Math.cos(angle) * dist), 4, scene)
             this.pirates.push(pirate)
             num -= 1
         }
@@ -46,20 +46,15 @@ class Game {
     Update(camera) {
         const time = performance.now() * 0.001;
         if(this.player.object) {
-            this.player.object.castShadow = true
-            this.player.object.receiveShadow = true
-
             this.player.Update(camera)
             this.player.object.position.y = Math.sin(time) * 0.7 + 1;
             this.player.object.rotation.z = Math.cos(time*1.1) * 0.05
         }
+        else return
 
         this.treasures.forEach( (treasure) => {
             if (treasure.object) {
-                treasure.object.castShadow = true
-                treasure.object.receiveShadow = true
-
-                treasure.object.position.y = Math.sin(time) * 0.4 - 0.1
+                treasure.object.position.y = Math.sin(time) * 0.4 - 0.7
                 treasure.object.rotation.x = Math.cos(time) * 0.1
                 treasure.object.rotation.z = Math.sin(time) * 0.1
             }
@@ -67,11 +62,8 @@ class Game {
 
         this.pirates.forEach( (pirate) => {
             if (pirate.object) {
-                pirate.object.castShadow = true
-                pirate.object.receiveShadow = true
-
-                pirate.Update()
-                pirate.object.position.y = Math.cos(time) * 0.7;
+                pirate.Update(this.player.object.position)
+                pirate.object.position.y = Math.cos(time) * 0.7 - 2;
             }
         })
     }

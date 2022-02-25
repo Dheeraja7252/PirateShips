@@ -1,11 +1,10 @@
-import {Vector3} from "three";
 import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 
 class Player {
     constructor() {
         this.direction = new Vector3(0, 0, -1)
-        this.speed = 0.01
-        this.acc = 0.005
+        this.speed = 0.5
+        this.acc = 0.05
         this.turn = 0.05
     }
 

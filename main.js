@@ -6,9 +6,11 @@ import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import {Game} from "./js/Game";
 
 let container;
-let camera, scene, renderer;
+let sideCamera, topCamera, scene, renderer;
 let controls, water, sun;
-let game, offset, cameraDirection;
+let game;
+let offset = new THREE.Vector3(-20, 50, 50);
+let cameraDirection = new THREE.Vector3(40, -50, -80);
 
 init();
 animate();
@@ -28,13 +30,16 @@ function init() {
 
     scene = new THREE.Scene();
 
-    camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 1, 20000 );
-    offset = new THREE.Vector3(-10, 20, 30)
-    cameraDirection = new THREE.Vector3(10, -20, -60)
-    camera.position.copy(offset)
-    const targ = camera.position.clone().add(cameraDirection)
-    camera.lookAt(targ.x, targ.y, targ.z)
-    scene.add(camera)
+    sideCamera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 1, 20000 );
+    sideCamera.position.copy(offset)
+    const targ = sideCamera.position.clone().add(cameraDirection)
+    sideCamera.lookAt(targ.x, targ.y, targ.z)
+    scene.add(sideCamera)
+
+    // topCamera = new THREE.OrthographicCamera(window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 10, 100)
+    // topCamera.position.set(0, 10, 0)
+    // topCamera.lookAt(0, 0, 0)
+    // scene.add(topCamera)
 
     // sun
     sun = new THREE.Vector3();
@@ -119,9 +124,9 @@ function init() {
     game = new Game()
     game.LoadModels(scene)
 
-    const ambientLight = new THREE.AmbientLight( 0xffffff, 0.1); // soft white light
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2); // soft white light
     scene.add( ambientLight );
-    const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
     scene.add( directionalLight );
 
     window.addEventListener( 'resize', onWindowResize );
@@ -144,40 +149,41 @@ function onKeyDown(event) {
     }
     if(event.key == "ArrowLeft") {
         let axis = new THREE.Vector3(0, 1, 0)
-        camera.position.sub(offset)
+        sideCamera.position.sub(offset)
 
         game.player.object.rotation.y += game.player.turn
         game.player.direction.applyAxisAngle(axis, game.player.turn)
         offset.applyAxisAngle(axis, game.player.turn)
         cameraDirection.applyAxisAngle(axis, game.player.turn)
 
-        camera.position.add(offset)
-        let targ = camera.position.clone().add(cameraDirection)
-        camera.lookAt(targ.x, targ.y, targ.z)
+        sideCamera.position.add(offset)
+        let targ = sideCamera.position.clone().add(cameraDirection)
+        sideCamera.lookAt(targ.x, targ.y, targ.z)
     }
     if(event.key == "ArrowRight") {
         let axis = new THREE.Vector3(0, 1, 0)
-        camera.position.sub(offset)
+        sideCamera.position.sub(offset)
 
         game.player.object.rotation.y -= game.player.turn
         game.player.direction.applyAxisAngle(axis, -game.player.turn)
         offset.applyAxisAngle(axis, -game.player.turn)
         cameraDirection.applyAxisAngle(axis, -game.player.turn)
 
-        camera.position.add(offset)
-        let targ = camera.position.clone().add(cameraDirection)
-        camera.lookAt(targ.x, targ.y, targ.z)
+        sideCamera.position.add(offset)
+        let targ = sideCamera.position.clone().add(cameraDirection)
+        sideCamera.lookAt(targ.x, targ.y, targ.z)
     }
 }
 
 function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
+    sideCamera.aspect = window.innerWidth / window.innerHeight;
+    sideCamera.updateProjectionMatrix();
     renderer.setSize( window.innerWidth, window.innerHeight );
 }
 
 function render() {
     water.material.uniforms[ 'time' ].value += 1.0 / 60.0;
-    game.Update(camera, offset)
-    renderer.render( scene, camera );
+    game.Update(sideCamera, offset)
+    renderer.render( scene, sideCamera );
+    // renderer.render(scene, topCamera)
 }

@@ -2,7 +2,7 @@ import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 
 class Pirate {
     constructor() {
-        this.speed = 0.5
+        this.speed = 0.2
         this.damage = 10
         this.destroyed = false;
     }
@@ -21,8 +21,10 @@ class Pirate {
     }
 
     Update(target) {
-        // const dir = GetDirection(this.object.position, target)
-        // this.object.position.addScaledVector(dir, this.speed())
+        let dir = target.clone().sub(this.object.position).normalize()
+        this.object.position.addScaledVector(dir, this.speed)
+        this.object.lookAt(target.x, target.y, target.z)
+        this.object.rotation.y -= 3.14/2
     }
 }
 
