@@ -173,6 +173,11 @@ function onKeyDown(event) {
         let targ = sideCamera.position.clone().add(cameraDirection)
         sideCamera.lookAt(targ.x, targ.y, targ.z)
     }
+
+    // if(event.key == " ") {
+    //     console.log("checking collision")
+    //     game.HandleCollisions(scene)
+    // }
 }
 
 function onWindowResize() {
@@ -183,7 +188,7 @@ function onWindowResize() {
 
 function render() {
     water.material.uniforms[ 'time' ].value += 1.0 / 60.0;
-    game.Update(sideCamera, offset)
+    game.Update(sideCamera, scene)
     renderer.render( scene, sideCamera );
     // renderer.render(scene, topCamera)
 }

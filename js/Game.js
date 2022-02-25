@@ -1,8 +1,8 @@
 import {Player} from "./Player";
 import {Pirate} from "./Pirate";
 import {Treasure} from "./Treasure";
-import {Vector3} from "three";
 import {randFloat} from "three/src/math/MathUtils";
+import * as THREE from 'three';
 
 class Game {
     constructor() {
@@ -15,8 +15,8 @@ class Game {
 
     LoadModels(scene) {
         this.player.LoadModel(0.05, scene)
-        this.SpawnTreasures(20, new Vector3(0, 0, 0), scene)
-        this.SpawnPirates(5, new Vector3(0, 0, 0), scene)
+        this.SpawnTreasures(20, new THREE.Vector3(0, 0, 0), scene)
+        // this.SpawnPirates(5, new THREE.Vector3(0, 0, 0), scene)
     }
 
     SpawnTreasures(num, playerPos, scene) {
@@ -43,7 +43,7 @@ class Game {
         }
     }
 
-    Update(camera) {
+    Update(camera, scene) {
         const time = performance.now() * 0.001;
         if(this.player.object) {
             this.player.Update(camera)
@@ -51,6 +51,8 @@ class Game {
             this.player.object.rotation.z = Math.cos(time*1.1) * 0.05
         }
         else return
+
+        this.HandleCollisions(scene)
 
         this.treasures.forEach( (treasure) => {
             if (treasure.object) {
@@ -66,6 +68,38 @@ class Game {
                 pirate.object.position.y = Math.cos(time) * 0.7 - 2;
             }
         })
+    }
+
+    HandleCollisions(scene) {
+        let newTreasures = []
+        let newPirates = []
+
+        // collecting treasures
+        this.treasures.forEach( (treasure) => {
+            if(treasure.object && treasure.box.intersectsBox(this.player.box)) {
+                // remove treasure, increase score
+                scene.remove(treasure.object)
+                // scene.remove(treasure.helper)
+                this.score += treasure.points
+                // console.log(treasure.points)
+                console.log("collectTreasure, score -> ", this.score)
+            }
+            else
+                newTreasures.push(treasure)
+        })
+
+        this.pirates.forEach( (pirate) => {
+            if(pirate.object && pirate.box.intersectsBox(this.player.box)) {
+                scene.remove(pirate.object)
+                // scene.remove(pirate.helper)
+                console.log("collide")
+            }
+            else
+                newPirates.push(pirate)
+        })
+
+        this.treasures = newTreasures
+        this.pirates = newPirates
     }
 }
 
