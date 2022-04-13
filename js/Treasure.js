@@ -28,7 +28,7 @@ class Treasure {
 
     Update() {
         this.box.setFromObject(this.object)
-        this.helper.update()
+        // this.helper.update()
     }
 
 }

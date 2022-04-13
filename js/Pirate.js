@@ -2,14 +2,15 @@ import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 import * as THREE from "three";
 
 class Pirate {
-    constructor() {
+    constructor(time) {
         this.speed = 0.5
         this.damage = 10
-        // this.destroyed = false;
+        this.lastFired = time
     }
 
     async LoadModel(posX, posY, posZ, scale, scene) {
-        const source = "../models/pirate/scene.gltf"
+        // const source = "../models/pirate/scene.gltf"
+        const source = "../models/kenny/Models/glTF format/ship_dark.gltf"
         const loader = new GLTFLoader();
         await loader.load(source,  (gltf) => {
                 const object = gltf.scene
@@ -28,12 +29,14 @@ class Pirate {
     }
 
     Update(target) {
+        let dir = target.clone().sub(this.object.position)
+        this.object.position.addScaledVector(dir.normalize(), this.speed)
+
+        let lookAt = this.object.position.clone().sub(dir)
+        this.object.lookAt(lookAt.x, lookAt.y, lookAt.z)
+        // this.object.rotation.y -= 3.14
+        // this.helper.update()
         this.box.setFromObject(this.object)
-        let dir = target.clone().sub(this.object.position).normalize()
-        this.object.position.addScaledVector(dir, this.speed)
-        // this.object.lookAt(target.x, target.y, target.z)
-        // this.object.rotation.y -= 3.14/2
-        this.helper.update()
     }
 }
 

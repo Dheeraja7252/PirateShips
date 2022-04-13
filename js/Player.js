@@ -11,13 +11,14 @@ class Player {
     }
 
     async LoadModel(scale, scene) {
-        const source = "../models/ship/scene.gltf"
+        // const source = "../models/ship/scene.gltf"
+        const source = "../models/kenny/Models/glTF format/ship_light.gltf"
         const loader = new GLTFLoader();
         await loader.load(source,  (gltf) => {
                 gltf.scene.updateMatrixWorld(true)
                 const object = gltf.scene
-                object.position.set(0, 5, 0)
-                object.rotation.y = 3.14
+                object.position.set(0, 0, 0)
+                // object.rotation.y = 3.14
                 object.scale.multiplyScalar(scale)
                 scene.add(object)
                 this.object = object
@@ -35,7 +36,7 @@ class Player {
         this.object.position.addScaledVector(this.direction, this.speed)
         camera.position.addScaledVector(this.direction, this.speed)
         this.box.setFromObject(this.object)
-        this.helper.update()
+        // this.helper.update()
     }
 }
 

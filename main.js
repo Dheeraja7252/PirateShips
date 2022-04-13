@@ -6,16 +6,22 @@ import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import {Game} from "./js/Game";
 
 let container;
-let sideCamera, topCamera, scene, renderer;
+let camera, scene, renderer;
 let controls, water, sun;
 let game;
-let offset = new THREE.Vector3(-20, 50, 50);
-let cameraDirection = new THREE.Vector3(40, -50, -80);
+
+let offset1 = new THREE.Vector3(-20, 50, 50);
+let cameraDirection1 = new THREE.Vector3(40, -50, -80);
+let offset2 = new THREE.Vector3(0, 100, 0);
+let cameraDirection2 = new THREE.Vector3(0, -1, 0);
+let cameraMode = 1;
+
+let offset = offset1.clone(), cameraDirection = cameraDirection1.clone()
 
 init();
 animate();
 
-function init() {
+async function init() {
     container = document.getElementById( 'container' );
 
     //
@@ -30,16 +36,11 @@ function init() {
 
     scene = new THREE.Scene();
 
-    sideCamera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 1, 20000 );
-    sideCamera.position.copy(offset)
-    const targ = sideCamera.position.clone().add(cameraDirection)
-    sideCamera.lookAt(targ.x, targ.y, targ.z)
-    scene.add(sideCamera)
-
-    // topCamera = new THREE.OrthographicCamera(window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 10, 100)
-    // topCamera.position.set(0, 10, 0)
-    // topCamera.lookAt(0, 0, 0)
-    // scene.add(topCamera)
+    camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 1, 20000 );
+    camera.position.copy(offset)
+    const targ = camera.position.clone().add(cameraDirection)
+    camera.lookAt(targ.x, targ.y, targ.z)
+    scene.add(camera)
 
     // sun
     sun = new THREE.Vector3();
@@ -122,15 +123,17 @@ function init() {
     //
 
     game = new Game()
-    game.LoadModels(scene)
+    await game.LoadModels(scene)
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2); // soft white light
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // soft white light
     scene.add( ambientLight );
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    let directionalLight = new THREE.DirectionalLight(0x555555, 2);
+    directionalLight.position.set(1, 1, 1);
     scene.add( directionalLight );
 
     window.addEventListener( 'resize', onWindowResize );
     document.body.addEventListener( 'keydown', onKeyDown, false );
+    document.body.addEventListener( 'keyup', onKeyUp, false );
 }
 
 function animate() {
@@ -138,57 +141,102 @@ function animate() {
     render();
 }
 
-function onKeyDown(event) {
-    if(event.key == "ArrowUp") {
-        game.player.speed += game.player.acc
+function onKeyUp(e) {
+    const keyCode = e.which;
+    if (keyCode === 87) { // w
+        game.acc = 0
     }
-    if(event.key == "ArrowDown") {
-        game.player.speed -= game.player.acc
-        if (game.player.speed < 0)
-            game.player.speed = 0
+    if (keyCode === 83) { // s
+        game.acc = 0
     }
-    if(event.key == "ArrowLeft") {
+    if (keyCode === 65) { // a
+        game.turn = 0
+    }
+    if (keyCode === 68) { // d
+        game.turn = 0
+    }
+    if (keyCode === 86) { // v
+        cameraMode ^= 3;
+        console.log(cameraMode)
+        if(cameraMode === 1) {
+            cameraDirection = cameraDirection1.clone()
+            offset = offset1.clone()
+        }
+        if(cameraMode === 2) {
+            cameraDirection = cameraDirection2.clone()
+            offset = offset2.clone()
+        }
+
         let axis = new THREE.Vector3(0, 1, 0)
-        sideCamera.position.sub(offset)
-
-        game.player.object.rotation.y += game.player.turn
-        game.player.direction.applyAxisAngle(axis, game.player.turn)
-        offset.applyAxisAngle(axis, game.player.turn)
-        cameraDirection.applyAxisAngle(axis, game.player.turn)
-
-        sideCamera.position.add(offset)
-        let targ = sideCamera.position.clone().add(cameraDirection)
-        sideCamera.lookAt(targ.x, targ.y, targ.z)
+        offset.applyAxisAngle(axis, game.player.object.rotation.y)
+        cameraDirection.applyAxisAngle(axis, game.player.object.rotation.y)
     }
-    if(event.key == "ArrowRight") {
-        let axis = new THREE.Vector3(0, 1, 0)
-        sideCamera.position.sub(offset)
-
-        game.player.object.rotation.y -= game.player.turn
-        game.player.direction.applyAxisAngle(axis, -game.player.turn)
-        offset.applyAxisAngle(axis, -game.player.turn)
-        cameraDirection.applyAxisAngle(axis, -game.player.turn)
-
-        sideCamera.position.add(offset)
-        let targ = sideCamera.position.clone().add(cameraDirection)
-        sideCamera.lookAt(targ.x, targ.y, targ.z)
+    if (keyCode === 32) { // space
+        game.PlayerFire(scene)
     }
+}
 
-    // if(event.key == " ") {
-    //     console.log("checking collision")
-    //     game.HandleCollisions(scene)
-    // }
+function onKeyDown(e) {
+    const keyCode = e.which;
+    if (keyCode === 87) { // w
+        game.acc = 1
+    }
+    if (keyCode === 83) { // s
+        game.acc = -1
+    }
+    if (keyCode === 65) { // a
+        game.turn = 1
+    }
+    if (keyCode === 68) { // d
+        game.turn = -1
+    }
 }
 
 function onWindowResize() {
-    sideCamera.aspect = window.innerWidth / window.innerHeight;
-    sideCamera.updateProjectionMatrix();
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
     renderer.setSize( window.innerWidth, window.innerHeight );
 }
 
 function render() {
+    if(game.gameOver) {
+        renderer.setAnimationLoop(null)
+        document.getElementById("gameover").innerHTML = "GAME OVER"
+        return
+    }
+
     water.material.uniforms[ 'time' ].value += 1.0 / 60.0;
-    game.Update(sideCamera, scene)
-    renderer.render( scene, sideCamera );
-    // renderer.render(scene, topCamera)
+
+    game.player.speed += game.acc * game.player.acc
+    if(game.player.speed < 0) game.player.speed = 0
+    if(game.player.speed > 4) game.player.speed = 4
+
+    let axis = new THREE.Vector3(0, 1, 0)
+
+    const turn = game.turn * game.player.turn * game.player.speed
+    if(turn) {
+        game.player.object.rotation.y += turn
+        game.player.direction.applyAxisAngle(axis, turn)
+
+        offset.applyAxisAngle(axis, turn)
+        cameraDirection.applyAxisAngle(axis, turn)
+    }
+
+    if(game.player.object) {
+        const dir = game.player.object.position.clone().add(offset)
+        camera.position.set(dir.x, dir.y, dir.z)
+    }
+    let targ = camera.position.clone().add(cameraDirection)
+    camera.lookAt(targ.x, targ.y, targ.z)
+
+    game.Update(camera, scene)
+
+    document.getElementById("score").innerHTML = "Score = " + game.score
+    document.getElementById("health").innerHTML = "Health: " + game.health
+    document.getElementById("time").innerHTML = "Time: " + Math.ceil(game.clock.getElapsedTime())
+
+    if(game.player.object)
+        water.position.set(game.player.object.position.x, game.player.object.position.y, game.player.object.position.z)
+
+    renderer.render( scene, camera );
 }
